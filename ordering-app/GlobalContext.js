@@ -4,14 +4,23 @@ export const AppContext = React.createContext({});
 export class AppContextProvider extends React.Component {
   state = {
     cart_items: [],
-
     user_id: 'wernancheta',
     user_name: 'Wern Ancheta',
+    user_type: 'customer',
+    room_id: '',
+    room_name: '',
   };
 
   constructor(props) {
     super(props);
   }
+
+  setRoom = (id, name) => {
+    this.setState({
+      room_id: id,
+      room_name: name,
+    });
+  };
 
   addToCart = (item, qty) => {
     let found = this.state.cart_items.filter(el => el.id === item.id);
@@ -37,6 +46,7 @@ export class AppContextProvider extends React.Component {
         value={{
           ...this.state,
           addToCart: this.addToCart,
+          setRoom: this.setRoom,
         }}>
         {this.props.children}
       </AppContext.Provider>

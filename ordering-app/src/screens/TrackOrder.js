@@ -8,6 +8,9 @@ import Pusher from 'pusher-js/react-native';
 
 import Config from 'react-native-config';
 
+import RNPusherPushNotifications from 'react-native-pusher-push-notifications';
+import axios from 'axios';
+
 const CHANNELS_APP_KEY = Config.CHANNELS_APP_KEY;
 const CHANNELS_APP_CLUSTER = Config.CHANNELS_APP_CLUSTER;
 const BASE_URL = Config.NGROK_HTTPS_URL;
@@ -24,6 +27,20 @@ const orderSteps = [
   'Driver has picked up your order and is on the way to deliver it',
   'Driver has delivered your order',
 ];
+
+RNPusherPushNotifications.setInstanceId(Config.BEAMS_INSTANCE_ID);
+
+const subscribeToRoom = room_id => {
+  RNPusherPushNotifications.subscribe(
+    room_id,
+    (statusCode, response) => {
+      console.error(statusCode, response);
+    },
+    () => {
+      console.log('Success');
+    },
+  );
+};
 
 class TrackOrder extends Component {
   static navigationOptions = ({navigation}) => {
@@ -95,9 +112,24 @@ class TrackOrder extends Component {
 
     this.user_ride_channel.bind('client-driver-response', data => {
       // customer responds to driver's response
+      const {hasDriver} = this.state;
       this.user_ride_channel.trigger('client-driver-response', {
-        response: this.state.hasDriver ? 'no' : 'yes',
+        response: hasDriver ? 'no' : 'yes',
+        room_id: hasDriver ? '0' : this.context.room_id,
+        room_name: hasDriver ? '' : this.context.room_name,
       });
+
+      if (!hasDriver) {
+        setTimeout(async () => {
+          const res = await axios.post(
+            `${BASE_URL}/push/${this.context.room_id}`,
+            {
+              push_type: 'customer_confirmed',
+              data: this.context.user_name,
+            },
+          );
+        }, 5000);
+      }
     });
 
     this.user_ride_channel.bind('client-found-driver', data => {
@@ -138,9 +170,17 @@ class TrackOrder extends Component {
         orderStatusText: orderSteps[data.step],
       });
     });
+
+    subscribeToRoom(this.context.room_id);
+
+    RNPusherPushNotifications.on('notification', noty => {
+      Alert.alert(noty.title, noty.body);
+    });
   }
 
-  contactDriver = () => {};
+  contactDriver = () => {
+    this.props.navigation.navigate('ContactDriver');
+  };
 
   render() {
     const {driverLocation, orderStatusText} = this.state;

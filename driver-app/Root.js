@@ -4,22 +4,18 @@ import {YellowBox} from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 
-import FoodList from './src/screens/FoodList';
-import FoodDetails from './src/screens/FoodDetails';
-import OrderSummary from './src/screens/OrderSummary';
-import TrackOrder from './src/screens/TrackOrder';
+import OrderMap from './src/screens/OrderMap';
+import ContactCustomer from './src/screens/ContactCustomer';
 
 YellowBox.ignoreWarnings(['Setting a timer']);
 
 const RootStack = createStackNavigator(
   {
-    FoodList,
-    FoodDetails,
-    OrderSummary,
-    TrackOrder,
+    OrderMap,
+    ContactCustomer,
   },
   {
-    initialRouteName: 'FoodList',
+    initialRouteName: 'OrderMap',
   },
 );
 
